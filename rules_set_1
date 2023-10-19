@@ -1,0 +1,34 @@
+on Power#homePower do
+  Let,5,400 // Define resolution in watt / LED
+  Let,6,[Power#homePower]+[Power#chargePower]
+  Let,7,20 // LED Brightness
+  
+  if [Power#pvPower]>[int#6] // if PV > then home+charge (fill with yellow LEDs)
+    Let,1,[int#6]/[int#5] // Last green LED
+    Let,2,[int#1]+1 // First yellow LED (start after green)
+    Let,3,[Power#gridPower]*-1 // Invert negativ gridPower
+    Let,3,[int#3]/[int#5] // divide by resolution
+    Let,3,[int#3]+[int#1] // Last yellow LED position
+    Let,4,[int#3]+1 // First LED off
+    If [int#3]=0 // if both are below resolution 1 orange LED should light up
+      NeoPixelHSV,1,30,100,10 // 1 Orange LED
+    Else
+      NeoPixelLineHSV,0,[int#1],120,100,[int#7] // GreenLEDs
+      NeoPixelLineHSV,[int#2],[int#3],60,100,[int#7] // Yellow LEDs
+      NeoPixelLineHSV,[int#4],24,120,100,0 // rest LEDs off
+    Endif
+  Else
+    Let,1,[Power#pvPower]/[int#5] // Last GreenLED
+    Let,2,[int#1]+1 // First Red LED
+    Let,3,[Power#gridPower]/[int#5]+[int#1] // Last Red LED
+    Let,4,[int#3]+1 // First LED off
+    If [int#3]=0 // if both are below resolution 1 orange LED should light up
+      NeoPixelHSV,1,30,100,[int#7] // 1 Orange LED
+    Else
+      NeoPixelLineHSV,0,[int#1],120,100,[int#7] // GreenLEDs
+      NeoPixelLineHSV,[int#2],[int#3],0,100,[int#7] // Red LEDs
+      NeoPixelLineHSV,[int#4],24,120,100,0 // rest LEDs off
+    Endif
+  Endif
+  
+Endon
