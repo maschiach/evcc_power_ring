@@ -1,6 +1,18 @@
 # evcc_power_ring
 
-A LED ring displaying the current EVCC status
+A LED ring displaying the current status from EVCC (https://github.com/evcc-io/evcc)
+
+In contrary to the EVCC bar info, the ring shows the current absolute values, not the relative ones.
+
+![image](https://github.com/maschiach/evcc_power_ring/assets/57842368/36a74dee-c43e-4e8f-a362-762036d6f335)
+
+Each LED represent a certain amount of WATT (e.g. 400 Watt)
+The color logic is the nearly the same as the EVCC displays it in the top bar 
+
+LEDs will light
+- "green" if PV power is used by household and/or charging the car
+- "yellow" if PV power is sent grid
+- "red" if power is used from grid (same as "grey" as in EVCC)
 
 ***
 
@@ -82,11 +94,27 @@ Set the "Led Count" to 24 and configure the "GPIO -> DIN" to "GPIO-0 (D3)"
 
 ![image](https://github.com/maschiach/evcc_power_ring/assets/57842368/492a0e20-b1eb-4961-b9ad-d11baae73fca)
 
-#### 2.6 Copy the rules
+#### 2.6 Copy the "rules"
 
 Copy paste the code from the "rule_set_1" file here in GitHub to the "Rules" field and save:
 
 ![image](https://github.com/maschiach/evcc_power_ring/assets/57842368/27584a7a-f552-45b8-96ff-0ac4e496c07a)
+
+#### 2.7 Adapt the "rules"
+
+in line 2 of the rules
+
+> Let,5,400 // Define resolution in watt per LED
+
+you can define how much watts 1 LED should represent.
+
+The command "Let,5" sets the 5th internal variable and ",400" is the value to be set according to this schematic:
+
+> Let,\<n\>,\<value\>
+
+*More info about rules: https://espeasy.readthedocs.io/en/latest/Rules/Rules.html#internal-variables*
+
+So in this case the 1 LED represents 400 Watt which means when all 24 LEDs of the ring lit up, this equals 9600 W
 
 ## Watch the magic happen
 
