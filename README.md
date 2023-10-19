@@ -33,7 +33,7 @@ First breadboard setup with ESP12 and the 24 LED ring in action:
 
 ### 1. Flash the suitable ESP Easy FW on your ESP Board
 
-see https://espeasy.readthedocs.io/en/latest/Reference/Flashing.html#flashing-software for details
+see https://github.com/letscontrolit/ESPEasy for details
 
 ### 2. Configure ESP Easy Firmware
 
@@ -62,7 +62,7 @@ Go to "Tools" -> "Advanced" -> tick the first box "Rules"
 - MQTT Topic 1: evcc/site/homePower
 - MQTT Topic 2: evcc/site/gridPower
 - MQTT Topic 3: evcc/site/pvPower
-- MQTT Topic 4: evcc/loadpoints/1/chargePower (maybe needs to be adapted according to the EVCC setup)
+- MQTT Topic 4: evcc/loadpoints/1/chargePower (maybe needs to be adapted according to your EVCC setup)
 
 and name them:
 
