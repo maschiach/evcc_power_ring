@@ -3,6 +3,9 @@
 ## Beschreibung
 
 PowerRing ist ein Arduino-Projekt für den ESP8266, das einen RGB LED-Ring zur Visualisierung von Photovoltaik-Daten verwendet. Es empfängt MQTT-Nachrichten von einem EVCC-System und stellt die PV-Leistung, den Hausverbrauch, den Netzbezug und den Ladestatus eines Elektrofahrzeugs dar.
+![grafik](https://github.com/user-attachments/assets/8217c266-0f09-45db-93c6-3c3f7e4cac4d)
+![PXL_20250202_104355275](https://github.com/user-attachments/assets/f247cdca-fc6e-4127-9a42-6a3cc9124ebd)
+
 
 ## Funktionen
 
@@ -60,13 +63,13 @@ Wichtiger Hinweis: Stellen Sie sicher, dass Sie die Adafruit_NeoPixel Bibliothek
 
 ## Verkabelung
 
-- Verbinden Sie den Daten-Pin des LED-Rings mit dem in `LED_PIN` definierten Pin des ESP8266 (Standard: D4).
+- Verbinden Sie den Daten-Pin des LED-Rings mit dem in `LED_PIN` definierten Pin des ESP8266 (Standard: D3). --> Siehe Schematic weiter unten
 - Stellen Sie sicher, dass der LED-Ring und der ESP8266 eine gemeinsame Masse haben.
 - Versorgen Sie den LED-Ring und den ESP8266 mit ausreichend Strom.
 
 ## Verwendung
 
-Nach dem Hochladen des Codes und der korrekten Verkabelung wird der ESP8266 versuchen, sich mit dem konfigurierten WLAN und MQTT-Broker zu verbinden. Die LEDs zeigen dann die empfangenen PV-Daten wie folgt an:
+Nach dem Hochladen des Codes und der korrekten Verkabelung wird der ESP8266 versuchen, sich mit dem konfigurierten WLAN und MQTT-Broker zu verbinden. Die LEDs zeigen dann die empfangenen EVCC PV-Daten wie folgt an:
 
 - Grün: Hausverbrauch aus PV-Leistung
 - Gelb: Überschüssige PV-Leistung
@@ -90,6 +93,7 @@ Bei Verbindungsproblemen blinkt die erste LED orange.
 - AMS1117 DC-DC Step Down Buck Converter 3.3 V BREAKOUT Board
 - EVCC running on e.g. RaspberryPi with MQTT configured
 - (optional) Adafruit 1833 USB MICRO-B BREAKOUT BOARD
+- (optional) IKEA "Bergenes Halter für Mobiltelefon/Tablet" mit zwei Plexiglasscheiben
 
 ### Schematic:
 
@@ -98,13 +102,3 @@ Bei Verbindungsproblemen blinkt die erste LED orange.
 ### Board:
 
 ![image](https://github.com/maschiach/evcc_power_ring/assets/57842368/60877ca7-3e40-4be3-86e5-47ae1d2307df)
-
-Soldered board example (ESP01S + AMS1117)
-
-![image](https://github.com/maschiach/evcc_power_ring/assets/57842368/bb434075-1779-4083-a693-986484157e78)
-
-First breadboard setup with ESP12 and the 24 LED ring in action:
-
-![image](https://github.com/maschiach/evcc_power_ring/assets/57842368/9307b9b5-e34e-4c3a-8112-3f387d36da28)
-
-
