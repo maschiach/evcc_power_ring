@@ -2,7 +2,7 @@
 
 ## Beschreibung
 
-PowerRing ist ein Arduino-Projekt für den ESP8266, das einen RGB LED-Ring zur Visualisierung von Photovoltaik-Daten verwendet. Es empfängt MQTT-Nachrichten von einem EVCC-System und stellt die PV-Leistung, den Hausverbrauch, den Netzbezug und den Ladestatus eines Elektrofahrzeugs dar.
+PowerRing ist ein Arduino-Projekt für den ESP8266, das einen RGB LED-Ring zur Visualisierung von Photovoltaik-Daten verwendet. Es empfängt MQTT-Nachrichten von einem [EVCC](https://github.com/evcc-io/evcc)-System und stellt die PV-Leistung, den Hausverbrauch, den Netzbezug und den Ladestatus eines Elektrofahrzeugs dar.
 ![grafik](https://github.com/user-attachments/assets/8217c266-0f09-45db-93c6-3c3f7e4cac4d)
 ![PXL_20250202_104355275](https://github.com/user-attachments/assets/f247cdca-fc6e-4127-9a42-6a3cc9124ebd)
 
