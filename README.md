@@ -1,22 +1,89 @@
-# evcc_power_ring
+# PowerRing - PV-Visualisierung mit ESP8266 und LED-Ring für EVCC
 
-A LED ring displaying the current status from EVCC (https://github.com/evcc-io/evcc)
+## Beschreibung
 
-In contrary to the EVCC bar info, the ring shows the current absolute values, not the relative ones.
+PowerRing ist ein Arduino-Projekt für den ESP8266, das einen RGB LED-Ring zur Visualisierung von Photovoltaik-Daten verwendet. Es empfängt MQTT-Nachrichten von einem EVCC-System und stellt die PV-Leistung, den Hausverbrauch, den Netzbezug und den Ladestatus eines Elektrofahrzeugs dar.
 
-![image](https://github.com/maschiach/evcc_power_ring/assets/57842368/36a74dee-c43e-4e8f-a362-762036d6f335)
+## Funktionen
 
-Each LED represent a certain amount of WATT (e.g. 400 Watt)
-The color logic is the nearly the same as the EVCC displays it in the top bar 
+- Visualisierung von PV-Leistung, Hausverbrauch und Netzbezug auf einem LED-Ring
+- Anzeige des EV-Ladestatus
+- MQTT-Integration für Datenaktualisierung
+- Sanftes Dimmen der LEDs bei Zustandsänderungen
+- Fehleranzeige bei Verbindungsproblemen
 
-LEDs will light
-- "green" if PV power is used by household and/or charging the car
-- "yellow" if PV power is sent grid
-- "red" if power is used from grid (same as "grey" as in EVCC)
+## Hardware-Anforderungen
+
+- ESP8266 Mikrocontroller (Hier ESP01 aber z.B. NodeMCU, Wemos D1 Mini)
+- WS2812B RGB LED-Ring (Anzahl der LEDs konfigurierbar)
+- Stromversorgung für ESP8266 und LED-Ring
+
+## Software-Anforderungen
+
+- Arduino IDE
+- ESP8266 Board-Unterstützung für Arduino IDE
+- Folgende Bibliotheken:
+  - ESP8266WiFi
+  - PubSubClient
+  - Adafruit_NeoPixel (Version 1.8.4)
+
+## Installation
+
+1. Klonen Sie dieses Repository oder laden Sie den Quellcode herunter.
+
+2. Öffnen Sie die Arduino IDE und installieren Sie die ESP8266 Board-Unterstützung:
+   - Fügen Sie `http://arduino.esp8266.com/stable/package_esp8266com_index.json` zu den zusätzlichen Boardverwalter-URLs in den Arduino-Einstellungen hinzu.
+   - Installieren Sie das ESP8266-Paket über den Boardverwalter.
+
+3. Installieren Sie die erforderlichen Bibliotheken über den Bibliotheksverwalter der Arduino IDE:
+   - PubSubClient
+   - Adafruit_NeoPixel (Version 1.8.4)
+
+Wichtiger Hinweis: Stellen Sie sicher, dass Sie die Adafruit_NeoPixel Bibliothek in der Version 1.8.4 installieren. Neuere Versionen sind nicht kompatibel mit dem ESP01. Um eine spezifische Version zu installieren:
+
+1. Öffnen Sie den Bibliotheksverwalter in der Arduino IDE (Sketch > Bibliothek einbinden > Bibliotheken verwalten...)
+2. Suchen Sie nach "Adafruit NeoPixel"
+3. Klicken Sie auf den Dropdown-Pfeil neben der Versionsnummer
+4. Wählen Sie Version 1.8.4 aus und klicken Sie auf "Installieren"
+
+4. Öffnen Sie die `PowerRing.ino` Datei in der Arduino IDE.
+
+5. Konfigurieren Sie die folgenden Variablen in der Datei:
+   - WLAN-Zugangsdaten (`ssid` und `password`)
+   - MQTT-Broker-Adresse (`mqtt_server`)
+   - LED-Pin und Anzahl der LEDs (`LED_PIN` und `NUM_LEDS`)
+   - MQTT-Topics für die verschiedenen Messwerte
+
+6. Wählen Sie das korrekte ESP8266-Board und den COM-Port in der Arduino IDE aus.
+
+7. Kompilieren und hochladen Sie den Code auf Ihren ESP8266.
+
+## Verkabelung
+
+- Verbinden Sie den Daten-Pin des LED-Rings mit dem in `LED_PIN` definierten Pin des ESP8266 (Standard: D4).
+- Stellen Sie sicher, dass der LED-Ring und der ESP8266 eine gemeinsame Masse haben.
+- Versorgen Sie den LED-Ring und den ESP8266 mit ausreichend Strom.
+
+## Verwendung
+
+Nach dem Hochladen des Codes und der korrekten Verkabelung wird der ESP8266 versuchen, sich mit dem konfigurierten WLAN und MQTT-Broker zu verbinden. Die LEDs zeigen dann die empfangenen PV-Daten wie folgt an:
+
+- Grün: Hausverbrauch aus PV-Leistung
+- Gelb: Überschüssige PV-Leistung
+- Rot: Netzbezug
+- Blau (erste LED): EV lädt
+
+Bei Verbindungsproblemen blinkt die erste LED orange.
+
+## Fehlerbehebung
+
+- Überprüfen Sie die serielle Konsole für Debug-Informationen.
+- Stellen Sie sicher, dass die WLAN- und MQTT-Broker-Einstellungen korrekt sind.
+- Überprüfen Sie die Verkabelung des LED-Rings.
 
 ***
 
-## Hardware:
+## Referenz Hardware:
 
 - 24Bit RGB LED Ring WS2812
 - ESP-01S (or any other board running ESP Easy FW)
@@ -41,88 +108,3 @@ First breadboard setup with ESP12 and the 24 LED ring in action:
 ![image](https://github.com/maschiach/evcc_power_ring/assets/57842368/9307b9b5-e34e-4c3a-8112-3f387d36da28)
 
 
-## Software:
-
-### 1. Flash the suitable ESP Easy FW on your ESP Board
-
-see https://github.com/letscontrolit/ESPEasy for details
-
-### 2. Configure ESP Easy Firmware
-
-via webinterface by calling your devices IP adress in a browser
-
-#### 2.1 Configure MQTT Broker 
-
-go to "Controllers" tab and add your IP to your MQTT broker
-
-![image](https://github.com/maschiach/evcc_power_ring/assets/57842368/b3325e60-f2bd-42fc-9052-30f77e1a137a)
-
-#### 2.2 Enable "Rules" feature
-
-Go to "Tools" -> "Advanced" -> tick the first box "Rules"
-  
-![image](https://github.com/maschiach/evcc_power_ring/assets/57842368/3c56d7f7-92ac-4004-b3b8-0b6bd467071e)
-
-#### 2.3 Create the devices
-
-"Output - NeoPixel (Basic)" & "Generic - MQTT Import"
-
-![image](https://github.com/maschiach/evcc_power_ring/assets/57842368/2660ef64-a41e-40ef-b3c2-23098da7dba6)
-
-#### 2.4 Configuration of "Generic - MQTT Import" device
-
-- MQTT Topic 1: evcc/site/homePower
-- MQTT Topic 2: evcc/site/gridPower
-- MQTT Topic 3: evcc/site/pvPower
-- MQTT Topic 4: evcc/loadpoints/1/chargePower (maybe needs to be adapted according to your EVCC setup)
-
-and name them:
-
-1. homePower
-2. gridPower
-3. pvPower
-4. chargePower
-
-Hint: the names are referenced in the rules set code so changes needs to be also done in rules code.
-
-![image](https://github.com/maschiach/evcc_power_ring/assets/57842368/31e9f45a-0b91-4266-8969-63adf3e98dc9)
-
-#### 2.5 Configuration of the "Output - NeoPixel (Basic)" device
-
-Set the "Led Count" to 24 and configure the "GPIO -> DIN" to "GPIO-0 (D3)"
-(e.g. if you're using an ESP01S board)
-
-![image](https://github.com/maschiach/evcc_power_ring/assets/57842368/492a0e20-b1eb-4961-b9ad-d11baae73fca)
-
-#### 2.6 Copy the "rules"
-
-Copy paste the code from the "rule_set_1" file here in GitHub to the "Rules" field and save:
-
-![image](https://github.com/maschiach/evcc_power_ring/assets/57842368/27584a7a-f552-45b8-96ff-0ac4e496c07a)
-
-#### 2.7 Adapt the "rules"
-
-in line 2 of the rules
-
-> Let,5,400 // Define resolution in watt per LED
-
-you can define how much watts 1 LED should represent.
-
-The command "Let,5" sets the 5th internal variable and ",400" is the value to be set according to this schematic:
-
-> Let,\<n\>,\<value\>
-
-*More info about rules: https://espeasy.readthedocs.io/en/latest/Rules/Rules.html#internal-variables*
-
-So in this case the 1 LED represents 400 Watt which means when all 24 LEDs of the ring lit up, this equals 9600 W
-
-## Watch the magic happen
-
-![image](https://github.com/maschiach/evcc_power_ring/assets/57842368/7311a2d0-8275-4f12-bef8-2e016e3a4295)
-
-![image](https://github.com/maschiach/evcc_power_ring/assets/57842368/0e5f662b-c1b2-4f35-ab43-01e8e7346347)
-
-
-
-Further info: About rules
-Link to ESP Easy Rules description (https://espeasy.readthedocs.io/en/latest/Rules/Rules.html)https://espeasy.readthedocs.io/en/latest/Rules/Rules.html
