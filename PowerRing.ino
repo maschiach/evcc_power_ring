@@ -3,34 +3,26 @@
 // Flash Size: "1M (no SPIFFS)"
 
 #include <ESP8266WiFi.h>
-#include <PubSubClient.h>
+#include <ESP8266HTTPClient.h>
+#include <ArduinoJson.h>
 #include <Adafruit_NeoPixel.h> // Use version 1.8.4 as this is compatible with ESP01s module
 
 // WiFi-Einstellungen
 const char* ssid = "YOUR_WLAN_ID";
 const char* password = "YOUR_WLAN_PASSWORD";
 
-// MQTT-Broker-Einstellungen
-const char* mqtt_server = "192.168.178.xx";
-const int mqtt_port = 1883;
+// REST API Einstellungen
+const char* api_endpoint = "http://192.168.178.77:7070/api/state";
 
 // LED-Ring-Einstellungen
 const int LED_PIN = 0; // GPIO-0
 const int NUM_LEDS = 24;
 const int WATTS_PER_LED = 400; // An die maximale PV Leistung anpassen
 
-// MQTT-Topics
-const char* TOPIC_PV_POWER = "evcc/site/pvPower";
-const char* TOPIC_GRID_POWER = "evcc/site/gridPower";
-const char* TOPIC_HOME_POWER = "evcc/site/homePower";
-const char* TOPIC_CHARGE_POWER = "evcc/loadpoints/1/chargePower";
-bool isConnected = false;
-
 // Globale Variablen für Messwerte
 float pvPower = 0, gridPower = 0, homePower = 0, chargePower = 0;
 
 WiFiClient espClient;
-PubSubClient client(espClient);
 Adafruit_NeoPixel strip(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 unsigned long lastUpdateTime = 0;
@@ -49,8 +41,6 @@ Color targetColors[NUM_LEDS];
 void setup() {
   Serial.begin(115200);
   setup_wifi();
-  client.setServer(mqtt_server, mqtt_port);
-  client.setCallback(callback);
   strip.begin();
   strip.show();
 }
@@ -74,38 +64,68 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
-void callback(char* topic, byte* payload, unsigned int length) {
-  String message;
-  for (int i = 0; i < length; i++) {
-    message += (char)payload[i];
-  }
-  float value = message.toFloat();
-
-  if (strcmp(topic, TOPIC_PV_POWER) == 0) pvPower = value;
-  else if (strcmp(topic, TOPIC_GRID_POWER) == 0) gridPower = value;
-  else if (strcmp(topic, TOPIC_HOME_POWER) == 0) homePower = value;
-  else if (strcmp(topic, TOPIC_CHARGE_POWER) == 0) chargePower = value;
-}
-
-void reconnect() {
-  while (!client.connected()) {
-    Serial.print("Verbinde mit MQTT-Broker...");
-    if (client.connect("ESP8266Client")) {
-      Serial.println("verbunden");
-      client.subscribe(TOPIC_PV_POWER);
-      client.subscribe(TOPIC_GRID_POWER);
-      client.subscribe(TOPIC_HOME_POWER);
-      client.subscribe(TOPIC_CHARGE_POWER);
-      connectionLost = false;
+void fetchDataFromAPI() {
+  Serial.println("Fetching data from API...");
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    
+    // Use the /api/state endpoint to get all required data
+    Serial.print("Connecting to URL: ");
+    Serial.println(api_endpoint);
+    http.begin(espClient, api_endpoint);
+    
+    int httpCode = http.GET();
+    Serial.print("HTTP Response Code: ");
+    Serial.println(httpCode);
+    
+    if (httpCode > 0) {
+      String payload = http.getString();
+      Serial.println("Received payload:");
+      Serial.println(payload);
+      
+      DynamicJsonDocument doc(2048); // Increased buffer size
+      DeserializationError error = deserializeJson(doc, payload);
+      
+      if (error) {
+        Serial.print("deserializeJson() failed: ");
+        Serial.println(error.c_str());
+        connectionLost = true;
+      } else {
+        // Extract data from the JSON response
+        pvPower = doc["result"]["pvPower"];
+        gridPower = doc["result"]["gridPower"];
+        homePower = doc["result"]["homePower"];
+        chargePower = doc["result"]["loadpoints"][0]["chargePower"]; // Assuming first loadpoint
+        
+        Serial.println("Extracted values:");
+        Serial.print("PV Power: ");
+        Serial.println(pvPower);
+        Serial.print("Grid Power: ");
+        Serial.println(gridPower);
+        Serial.print("Home Power: ");
+        Serial.println(homePower);
+        Serial.print("Charge Power: ");
+        Serial.println(chargePower);
+        
+        connectionLost = false;
+      }
     } else {
-      Serial.print("Fehlgeschlagen, rc=");
-      Serial.print(client.state());
-      Serial.println(" Versuche erneut in 5 Sekunden");
+      Serial.println("Error on HTTP request");
       connectionLost = true;
-      delay(5000);
     }
+    
+    http.end();
+    Serial.println("HTTP connection closed");
+  } else {
+    Serial.println("WiFi not connected");
+    connectionLost = true;
   }
+  
+  Serial.println("Data fetch complete");
+  Serial.println();
 }
+
+
 
 void updateLEDs() {
   // Ziel-Farben basierend auf den aktuellen Werten setzen
@@ -179,8 +199,9 @@ void setTargetColors() {
   if (chargePower > 0) {
     targetColors[0] = Color(0, 0, 125);
   }
-  // Debugging print outs
+
   Serial.println("");
+
   Serial.println("gridPower: ");
   Serial.println(gridPower);
   Serial.println("pvPower: ");
@@ -189,6 +210,7 @@ void setTargetColors() {
   Serial.println(homePower);
   Serial.println("");
 
+  /*
   for (int i = 0; i < NUM_LEDS; i++) {
     Serial.print(i);
     Serial.print(" R: ");
@@ -199,18 +221,14 @@ void setTargetColors() {
     Serial.print(targetColors[i].b);
     Serial.println("");
   }
+  */
 
 }
 
 void loop() {
-  if (!client.connected()) {
-    Serial.print("Reconnecting ...");
-    reconnect();
-  }
-  client.loop();
-
   unsigned long currentTime = millis();
   if (currentTime - lastUpdateTime >= 2000) {
+    fetchDataFromAPI();
     updateLEDs();
     lastUpdateTime = currentTime;
   }
@@ -224,4 +242,5 @@ void loop() {
     }
     strip.show();
   }
+}
 }
