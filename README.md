@@ -67,6 +67,7 @@ Dieses Arduino-Projekt für den ESP8266-Mikrocontroller visualisiert Energiedate
    - WLAN-Zugangsdaten (`ssid` und `password`)
    - RestAPI-Adresse (`api_endpoint`)
    - LED-Pin und Anzahl der LEDs (`LED_PIN` und `NUM_LEDS`)
+   - Die Leistung in Watt welche eine LED darstellt (`WATTS_PER_LED`)
 
 6. Wählen Sie das korrekte ESP8266-Board und den COM-Port in der Arduino IDE aus.
   - Für ESP01s: "Generic ESP8266 Module"
