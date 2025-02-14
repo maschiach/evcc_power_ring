@@ -93,7 +93,7 @@ void fetchDataFromAPI() {
       } else {
         // Extract data from the JSON response
         pvPower = doc["result"]["pvPower"];
-        gridPower = doc["result"]["gridPower"];
+        gridPower = doc["result"]["grid"]["power"];
         homePower = doc["result"]["homePower"];
         chargePower = doc["result"]["loadpoints"][0]["chargePower"]; // Assuming first loadpoint
         
