@@ -155,22 +155,22 @@ void setTargetColors() {
     targetColors[i] = Color(0, 0, 0); // Alle LEDs zunächst ausschalten
   }
 
-  if (pvPower > (homePower + chargePower)) {
+  if (gridPower < 0) {
     // Grüne LEDs für Hausverbrauch
-    int ledsToLight = min(NUM_LEDS, int(round((homePower + chargePower) / WATTS_PER_LED)));
+    int ledsToLight = min(NUM_LEDS, int(round((pvPower - abs(gridPower)) / WATTS_PER_LED)));
     Serial.print("ledsToLight: ");
-    // Serial.println(homePower / WATTS_PER_LED);
-    // Serial.println(round(homePower / WATTS_PER_LED));
+    //Serial.println((pvPower - abs(gridPower)) / WATTS_PER_LED);
+    //Serial.println(round((pvPower - abs(gridPower)) / WATTS_PER_LED));
     Serial.println(ledsToLight);
 
     for (int i = 0; i < ledsToLight; i++) {
       targetColors[i] = Color(0, 125, 0);
     }
     // Gelbe LEDs für überschüssige PV-Leistung
-    int surplusLeds = min(NUM_LEDS - ledsToLight, int(round((pvPower - homePower - chargePower) / WATTS_PER_LED)));
+    int surplusLeds = min(NUM_LEDS - ledsToLight, int(round(abs(gridPower) / WATTS_PER_LED)));
     Serial.print("surplusLeds: ");
-    // Serial.println((pvPower - homePower) / WATTS_PER_LED);
-    // Serial.println(round((pvPower - homePower) / WATTS_PER_LED));
+    // Serial.println(abs(gridPower) / WATTS_PER_LED);
+    // Serial.println(round(abs(gridPower) / WATTS_PER_LED));
     Serial.println(surplusLeds);
     for (int i = ledsToLight; i < ledsToLight + surplusLeds; i++) {
       targetColors[i] = Color(125, 125, 0);
@@ -199,16 +199,6 @@ void setTargetColors() {
   if (chargePower > 0) {
     targetColors[0] = Color(0, 0, 125);
   }
-
-  Serial.println("");
-
-  Serial.println("gridPower: ");
-  Serial.println(gridPower);
-  Serial.println("pvPower: ");
-  Serial.println(pvPower);
-  Serial.println("homePower: ");
-  Serial.println(homePower);
-  Serial.println("");
 
   /*
   for (int i = 0; i < NUM_LEDS; i++) {
