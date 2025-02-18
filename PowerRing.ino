@@ -20,7 +20,7 @@ const int NUM_LEDS = 24;
 const int WATTS_PER_LED = 400; // An die maximale PV Leistung anpassen
 
 // Globale Variablen für Messwerte
-float pvPower = 0, gridPower = 0, homePower = 0, chargePower = 0;
+float pvPower = 0, gridPower = 0, homePower = 0, chargePower = 0, batteryPower = 0;
 
 WiFiClient espClient;
 Adafruit_NeoPixel strip(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
@@ -96,6 +96,7 @@ void fetchDataFromAPI() {
         gridPower = doc["result"]["grid"]["power"];
         homePower = doc["result"]["homePower"];
         chargePower = doc["result"]["loadpoints"][0]["chargePower"]; // Assuming first loadpoint
+        batteryPower = doc["result"]["battery"][0]["power"]; // Assuming first battery
         
         Serial.println("Extracted values:");
         Serial.print("PV Power: ");
@@ -106,6 +107,8 @@ void fetchDataFromAPI() {
         Serial.println(homePower);
         Serial.print("Charge Power: ");
         Serial.println(chargePower);
+        Serial.print("Battery Power: ");
+        Serial.println(batteryPower);
         
         connectionLost = false;
       }
@@ -155,32 +158,30 @@ void setTargetColors() {
     targetColors[i] = Color(0, 0, 0); // Alle LEDs zunächst ausschalten
   }
 
-  if (pvPower > (homePower + chargePower)) {
-    // Grüne LEDs für Hausverbrauch
-    int ledsToLight = min(NUM_LEDS, int(round((homePower + chargePower) / WATTS_PER_LED)));
+  float batterySupplyPower = max(0.0f, batteryPower); // Nur positive Werte gehen in die Berechnung ein: Wenn batteryPower > 0 wird die Batterie entladen und speist ins Netz ein
+
+  if (gridPower < 0) {
+    // Bei Einspeisung: "grüne und gelbe" LEDs
+    // Grüne LEDs für Eigenverbrauch (inkl. Verbrauch der von der Batterie gedeckt wird)
+    int ledsToLight = min(NUM_LEDS, int(round((pvPower + batterySupplyPower - abs(gridPower)) / WATTS_PER_LED)));
     Serial.print("ledsToLight: ");
-    // Serial.println(homePower / WATTS_PER_LED);
-    // Serial.println(round(homePower / WATTS_PER_LED));
     Serial.println(ledsToLight);
 
     for (int i = 0; i < ledsToLight; i++) {
       targetColors[i] = Color(0, 125, 0);
     }
     // Gelbe LEDs für überschüssige PV-Leistung
-    int surplusLeds = min(NUM_LEDS - ledsToLight, int(round((pvPower - homePower - chargePower) / WATTS_PER_LED)));
+    int surplusLeds = min(NUM_LEDS - ledsToLight, int(round(abs(gridPower) / WATTS_PER_LED)));
     Serial.print("surplusLeds: ");
-    // Serial.println((pvPower - homePower) / WATTS_PER_LED);
-    // Serial.println(round((pvPower - homePower) / WATTS_PER_LED));
     Serial.println(surplusLeds);
     for (int i = ledsToLight; i < ledsToLight + surplusLeds; i++) {
       targetColors[i] = Color(125, 125, 0);
     }
   } else {
-    // Grüne LEDs für PV-Leistung
-    int pvLeds = min(NUM_LEDS, int(round(pvPower / WATTS_PER_LED)));
+    // Bei Netzbezug "grüne und rote" LEDs
+    // Grüne LEDs für PV-Leistung + evtl. vorhandene Batterieleistung
+    int pvLeds = min(NUM_LEDS, int(round((pvPower + batterySupplyPower) / WATTS_PER_LED)));
     Serial.print("pvLeds: ");
-    // Serial.println(pvPower / WATTS_PER_LED);
-    // Serial.println(round(pvPower / WATTS_PER_LED));
     Serial.println(pvLeds);
     for (int i = 0; i < pvLeds; i++) {
       targetColors[i] = Color(0, 125, 0);
@@ -188,8 +189,6 @@ void setTargetColors() {
     // Rote LEDs für Netzstrombezug
     int gridLeds = min(NUM_LEDS - pvLeds, int(round(gridPower / WATTS_PER_LED)));
     Serial.print("gridLeds: ");
-    // Serial.println(gridPower / WATTS_PER_LED);
-    // Serial.println(round(gridPower / WATTS_PER_LED));
     Serial.println(gridLeds);
     for (int i = pvLeds; i < pvLeds + gridLeds; i++) {
       targetColors[i] = Color(125, 0, 0);
@@ -199,16 +198,6 @@ void setTargetColors() {
   if (chargePower > 0) {
     targetColors[0] = Color(0, 0, 125);
   }
-
-  Serial.println("");
-
-  Serial.println("gridPower: ");
-  Serial.println(gridPower);
-  Serial.println("pvPower: ");
-  Serial.println(pvPower);
-  Serial.println("homePower: ");
-  Serial.println(homePower);
-  Serial.println("");
 
   /*
   for (int i = 0; i < NUM_LEDS; i++) {
