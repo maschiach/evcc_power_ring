@@ -30,6 +30,9 @@ Dieses Arduino-Projekt für den ESP8266-Mikrocontroller visualisiert Energiedate
   - z.B. AMS1117 DC-DC Step Down Buck Converter mit
   - Adafruit 1833 USB MICRO-B BREAKOUT BOARD
 
+Hinweis von [Gelegenheitsbastler](https://github.com/Gelegenheitsbastler) (Danke!):
+"Je nach verwendeten LEDs und Kabeln kann es sein, dass die Kommunikation zwischen dem ESP und dem LED-Stripe gar nicht oder nicht korrekt funktioniert. Das liegt dann daran, dass das Ausgangssignal des ESP 3V3 hat, der LED-Stripe aber einen Pegel von 5V erwartet. In solchen Fällen ist der Einsatz eines Pegelwandlers die Lösung. Da die Kommunikation nur in eine Richtung ESP --> LED statt findet, reicht ein BSS 138 völlig aus. Diese Level-Shifter gibt es für schmales Geld überall zu kaufen."
+
 ## Software-Anforderungen
 
 - Arduino IDE
