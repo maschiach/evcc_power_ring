@@ -28,11 +28,23 @@ Adafruit_NeoPixel strip(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
 unsigned long lastUpdateTime = 0;
 bool connectionLost = false;
 
-// Struktur für LED-Farben
+// Helligkeitseinstellung (0-255)
+const uint8_t BRIGHTNESS = 50;
+
+// Farbdefinitionen
 struct Color {
   uint8_t r, g, b;
   Color(uint8_t r = 0, uint8_t g = 0, uint8_t b = 0) : r(r), g(g), b(b) {}
+  Color applyBrightness() const {
+    return Color((r * BRIGHTNESS) / 255, (g * BRIGHTNESS) / 255, (b * BRIGHTNESS) / 255);
+  }
 };
+
+const Color COLOR_GREEN(0, 255, 0);
+const Color COLOR_YELLOW(255, 255, 0);
+const Color COLOR_RED(255, 0, 0);
+const Color COLOR_BLUE(0, 0, 255);
+const Color COLOR_ORANGE(255, 165, 0);
 
 // Array für aktuelle und Ziel-LED-Farben
 Color currentColors[NUM_LEDS];
@@ -168,14 +180,14 @@ void setTargetColors() {
     Serial.println(ledsToLight);
 
     for (int i = 0; i < ledsToLight; i++) {
-      targetColors[i] = Color(0, 125, 0);
+      targetColors[i] = COLOR_GREEN.applyBrightness();
     }
     // Gelbe LEDs für überschüssige PV-Leistung
     int surplusLeds = min(NUM_LEDS - ledsToLight, int(round(abs(gridPower) / WATTS_PER_LED)));
     Serial.print("surplusLeds: ");
     Serial.println(surplusLeds);
     for (int i = ledsToLight; i < ledsToLight + surplusLeds; i++) {
-      targetColors[i] = Color(125, 125, 0);
+      targetColors[i] = COLOR_YELLOW.applyBrightness();
     }
   } else {
     // Bei Netzbezug "grüne und rote" LEDs
@@ -184,19 +196,19 @@ void setTargetColors() {
     Serial.print("pvLeds: ");
     Serial.println(pvLeds);
     for (int i = 0; i < pvLeds; i++) {
-      targetColors[i] = Color(0, 125, 0);
+      targetColors[i] = COLOR_GREEN.applyBrightness();
     }
     // Rote LEDs für Netzstrombezug
     int gridLeds = min(NUM_LEDS - pvLeds, int(round(gridPower / WATTS_PER_LED)));
     Serial.print("gridLeds: ");
     Serial.println(gridLeds);
     for (int i = pvLeds; i < pvLeds + gridLeds; i++) {
-      targetColors[i] = Color(125, 0, 0);
+      targetColors[i] = COLOR_RED.applyBrightness();
     }
   }
   // Erste LED blau, wenn Fahrzeug lädt
   if (chargePower > 0) {
-    targetColors[0] = Color(0, 0, 125);
+    targetColors[0] = COLOR_BLUE.applyBrightness();
   }
 
   /*
@@ -225,7 +237,8 @@ void loop() {
   if (connectionLost) {
     // Erste LED orange blinken lassen
     if ((currentTime / 1000) % 2 == 0) {
-      strip.setPixelColor(0, strip.Color(125, 80, 0));
+      Color orangeBright = COLOR_ORANGE.applyBrightness();
+      strip.setPixelColor(0, strip.Color(orangeBright.r, orangeBright.g, orangeBright.b));
     } else {
       strip.setPixelColor(0, strip.Color(0, 0, 0));
     }
